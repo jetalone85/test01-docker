@@ -1,0 +1,52 @@
+version: '3'
+services:
+
+  postgres:
+    image: postgres:alpine
+    restart: always
+    container_name: postgres
+    environment:
+      POSTGRES_DB: symfony
+      POSTGRES_PASSWORD: symfony
+      POSTGRES_USER: symfony
+    volumes:
+      - './data/postgres:/var/lib/postgresql/data'
+
+  php:
+    build:
+      context: ./etc/php
+    container_name: php
+    entrypoint: sh /bin/entrypoint.sh php-fpm
+    restart: on-failure
+    volumes:
+      - './etc/php/php.ini:/usr/local/etc/php/conf.d/php.ini'
+      - './application:/var/www/html'
+      - './etc/log/nginx:/var/log/nginx'
+      - './etc/php/entrypoint.sh:/bin/entrypoint.sh'
+    depends_on:
+      - postgres
+
+  web:
+    build: ./etc/nginx
+    container_name: nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    restart: on-failure
+    volumes:
+      - './etc/nginx/nginx.conf:/etc/nginx/nginx.conf'
+      - './etc/nginx/application.conf:/etc/nginx/sites-available/application.conf'
+      - './etc/nginx/application.conf:/etc/nginx/sites-enabled/application'
+      - './etc/log/nginx:/var/log/nginx'
+      - './application:/var/www/html'
+    depends_on:
+      - php
+      - postgres
+
+  webpack:
+    build: ./etc/webpack
+    container_name: webpack
+    restart: always
+    volumes:
+      - './application:/var/www/html'
+    command: ["sleep","infinity"]
