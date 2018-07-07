@@ -9,7 +9,7 @@ RUN php -r "readfile('https://getcomposer.org/installer');" | php -- --install-d
 
 USER root
 
-#RUN usermod -u 1000 www-data
-#RUN chmod 777 /var/www/html
+RUN usermod -u 1000 www-data
+RUN chmod 777 /var/www/html
 
 WORKDIR /var/www/html
